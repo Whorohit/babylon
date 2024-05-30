@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Babylon.js 3D Room</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.gui.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        #renderCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+    <script>
+        // Get the canvas element
+        const canvas = document.getElementById("renderCanvas");
+
+        // Generate the BABYLON 3D engine
+        const engine = new BABYLON.Engine(canvas, true);
+
+        // Create the scene
+        const createScene = () => {
+            const scene = new BABYLON.Scene(engine);
+
+            // Add a camera to the scene and attach it to the canvas
+            const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 4, 20, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+
+            // Add a light to the scene
+            const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), scene);
+
+            // Create the ground (room floor)
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100}, scene);
+
+            // Create walls (room boundaries)
+            const createWall = (width, height, depth, position) => {
+                const wall = BABYLON.MeshBuilder.CreateBox("wall", {width: width, height: height, depth: depth}, scene);
+                wall.position = position;
+                return wall;
+            };
+
+            createWall(100, 10, 1, new BABYLON.Vector3(0, 5, -50)); // Back wall
+            createWall(100, 10, 1, new BABYLON.Vector3(0, 5, 50));  // Front wall
+            createWall(1, 10, 100, new BABYLON.Vector3(-50, 5, 0)); // Left wall
+            createWall(1, 10, 100, new BABYLON.Vector3(50, 5, 0));  // Right wall
+
+            // Create a box (object)
+            const box = BABYLON.MeshBuilder.CreateBox("box", {size: 2}, scene);
+            box.position.y = 1;
+
+            // Set up key handling
+            window.addEventListener("keydown", (event) => {
+                const step = 1;
+                switch(event.key) {
+                    case "ArrowUp":
+                        if (box.position.z - step > -49) box.position.z -= step;
+                        break;
+                    case "ArrowDown":
+                        if (box.position.z + step < 49) box.position.z += step;
+                        break;
+                    case "ArrowLeft":
+                        if (box.position.x - step > -49) box.position.x -= step;
+                        break;
+                    case "ArrowRight":
+                        if (box.position.x + step < 49) box.position.x += step;
+                        break;
+                }
+            });
+
+            return scene;
+        };
+
+        const scene = createScene();
+
+        // Register a render loop to repeatedly render the scene
+        engine.runRenderLoop(() => {
+            scene.render();
+        });
+
+        // Watch for browser/canvas resize events
+        window.addEventListener("resize", () => {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
